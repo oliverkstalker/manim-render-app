@@ -1,4 +1,5 @@
 from flask import Flask, request, send_file, jsonify
+import tempfile
 import subprocess
 import uuid
 import os
@@ -19,41 +20,42 @@ def render_manim():
     if not scene_name:
         return jsonify({"error": "No Scene class found in code."}), 400
 
-    code_file = f"/tmp/scene_{scene_id}.py"
-
     try:
-        with open(code_file, "w") as f:
-            f.write(user_code)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            code_file = os.path.join(temp_dir, f"scene_{scene_id}.py")
+            with open(code_file, "w") as f:
+                f.write(user_code)
 
-        cmd = [
-            "manim", code_file,
-            scene_name,
-            "-qm",
-            "-o", f"scene_{scene_id}.mp4",
-            "--media_dir", "/tmp"
-        ]
-        # Force the command to run with /tmp as the working directory.
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, cwd="/tmp")
-        
-        os.remove(code_file)  # Clean up the temp Python file
+            cmd = [
+                "manim", code_file,
+                scene_name,
+                "-qm",
+                "-o", f"scene_{scene_id}.mp4",
+                "--media_dir", temp_dir
+            ]
 
-        if result.returncode != 0:
-            return jsonify({
-                "error": "Manim rendering failed",
-                "details": result.stderr
-            }), 500
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, cwd=temp_dir)
 
-        # The expected output path now is:
-        output_path = f"/tmp/videos/scene_{scene_id}/720p30/scene_{scene_id}.mp4"
-        if not os.path.exists(output_path):
-            return jsonify({"error": f"Expected video not found at {output_path}"}), 500
+            if result.returncode != 0:
+                return jsonify({
+                    "error": "Manim rendering failed",
+                    "details": result.stderr
+                }), 500
 
-        return send_file(output_path, mimetype="video/mp4")
+            output_path = os.path.join(
+                temp_dir, "media", "videos", "scene", "720p30", f"scene_{scene_id}.mp4"
+            )
+
+            if not os.path.exists(output_path):
+                return jsonify({"error": f"Expected video not found at {output_path}"}), 500
+
+            return send_file(output_path, mimetype="video/mp4")
 
     except subprocess.TimeoutExpired:
         return jsonify({"error": "Rendering timed out."}), 504
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 def extract_scene_name(code: str) -> str:
     pattern = r'class\s+(\w+)\s*\((?:.*?)Scene\):'
