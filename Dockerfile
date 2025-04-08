@@ -1,8 +1,5 @@
 FROM manimcommunity/manim:stable
 
-# Create a non-root user
-RUN useradd -m manimuser
-
 # Install required Python packages
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
