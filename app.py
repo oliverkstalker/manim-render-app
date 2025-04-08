@@ -3,7 +3,6 @@ import subprocess
 import uuid
 import os
 import re
-import glob
 
 app = Flask(__name__)
 
