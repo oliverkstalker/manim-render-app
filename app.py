@@ -54,7 +54,7 @@ def render_manim():
             cmd,
             capture_output=True,
             text=True,
-            timeout=90,
+            timeout=300,
             cwd=MEDIA_DIR
         )
 
