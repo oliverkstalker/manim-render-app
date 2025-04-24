@@ -57,7 +57,6 @@ def render_manim():
             cwd=MEDIA_DIR
         )
 
-        # Remove the temp Python file
         os.remove(code_path)
 
         print("==== [STDOUT] ====")
@@ -72,8 +71,17 @@ def render_manim():
                 "stdout": result.stdout.strip()
             }), 500
 
-        # Construct the expected video output path
         output_path = os.path.join(MEDIA_DIR, "videos", f"scene_{scene_id}", RESOLUTION, output_name)
+
+        print(f"[CHECK] Expected output path: {output_path}")
+        print(f"[CHECK] Directory exists? {os.path.exists(os.path.dirname(output_path))}")
+        if os.path.exists(os.path.dirname(output_path)):
+            print(f"[CHECK] Contents of {os.path.dirname(output_path)}:")
+            print(os.listdir(os.path.dirname(output_path)))
+
+        # Debug: find all .mp4s in /tmp
+        print("[DEBUG] All MP4s under /tmp:")
+        os.system("find /tmp -name '*.mp4'")
 
         if not os.path.exists(output_path):
             print(f"[ERROR] Output file missing: {output_path}")
@@ -88,7 +96,11 @@ def render_manim():
             }), 500
 
         print(f"[SUCCESS] Video file created at: {output_path}")
-        return send_file(output_path, mimetype="video/mp4")
+        try:
+            return send_file(output_path, mimetype="video/mp4")
+        except Exception as e:
+            print("[SEND FILE ERROR]", str(e))
+            return jsonify({"error": "Failed to send video", "details": str(e)}), 500
 
     except subprocess.TimeoutExpired:
         print("[ERROR] Manim process timed out.")
@@ -105,12 +117,12 @@ def extract_scene_name(code: str) -> str:
     match = re.search(pattern, code)
     return match.group(1) if match else None
 
+
 @app.errorhandler(BadRequest)
 def handle_bad_request(e):
     print("[GLOBAL] BadRequest exception triggered.")
     print(e)
     return jsonify({"error": "Invalid JSON or malformed payload", "message": str(e)}), 400
-
 
 
 if __name__ == '__main__':
