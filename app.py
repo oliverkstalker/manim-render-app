@@ -4,6 +4,7 @@ import uuid
 import os
 import re
 import traceback
+import glob
 from werkzeug.exceptions import BadRequest
 
 app = Flask(__name__)
@@ -71,31 +72,19 @@ def render_manim():
                 "stdout": result.stdout.strip()
             }), 500
 
-        output_path = os.path.join(MEDIA_DIR, "videos", f"scene_{scene_id}", RESOLUTION, output_name)
-
-        print(f"[CHECK] Expected output path: {output_path}")
-        print(f"[CHECK] Directory exists? {os.path.exists(os.path.dirname(output_path))}")
-        if os.path.exists(os.path.dirname(output_path)):
-            print(f"[CHECK] Contents of {os.path.dirname(output_path)}:")
-            print(os.listdir(os.path.dirname(output_path)))
-
-        # Debug: find all .mp4s in /tmp
-        print("[DEBUG] All MP4s under /tmp:")
-        os.system("find /tmp -name '*.mp4'")
-
-        if not os.path.exists(output_path):
-            print(f"[ERROR] Output file missing: {output_path}")
-            parent = os.path.dirname(output_path)
-            if os.path.exists(parent):
-                print(f"[INFO] Directory contents of {parent}: {os.listdir(parent)}")
-            else:
-                print(f"[INFO] Parent directory {parent} does not exist.")
+        print("[DEBUG] Locating rendered .mp4...")
+        candidate_paths = glob.glob(f"/tmp/videos/scene_{scene_id}/**/scene_{scene_id}.mp4", recursive=True)
+        if candidate_paths:
+            output_path = candidate_paths[0]
+            print(f"[SUCCESS] Video file found at: {output_path}")
+        else:
+            print("[ERROR] Could not find rendered video in any subdirectory.")
+            os.system("find /tmp/videos -name '*.mp4'")
             return jsonify({
-                "error": f"Expected video not found at {output_path}",
-                "dir_contents": os.listdir(os.path.dirname(parent)) if os.path.exists(os.path.dirname(parent)) else "N/A"
+                "error": "Video not found",
+                "searched": f"/tmp/videos/scene_{scene_id}/**/"
             }), 500
 
-        print(f"[SUCCESS] Video file created at: {output_path}")
         try:
             return send_file(output_path, mimetype="video/mp4")
         except Exception as e:
@@ -111,19 +100,16 @@ def render_manim():
         traceback.print_exc()
         return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
 
-
 def extract_scene_name(code: str) -> str:
     pattern = r'class\s+(\w+)\s*\((?:.*?)Scene\):'
     match = re.search(pattern, code)
     return match.group(1) if match else None
-
 
 @app.errorhandler(BadRequest)
 def handle_bad_request(e):
     print("[GLOBAL] BadRequest exception triggered.")
     print(e)
     return jsonify({"error": "Invalid JSON or malformed payload", "message": str(e)}), 400
-
 
 if __name__ == '__main__':
     app.run(debug=True)
