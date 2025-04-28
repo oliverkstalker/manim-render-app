@@ -6,6 +6,7 @@ import re
 import traceback
 import glob
 from werkzeug.exceptions import BadRequest
+import sys
 
 app = Flask(__name__)
 
@@ -41,7 +42,7 @@ def render_manim():
 
         output_name = f"scene_{scene_id}.mp4"
         cmd = [
-            "manim",
+            sys.executable, "-m", "manim",
             code_path,
             scene_name,
             "-qm",
