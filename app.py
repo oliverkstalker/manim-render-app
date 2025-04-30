@@ -47,7 +47,6 @@ def render_manim():
             scene_name,
             "-qm",
             "-o", output_name,
-            "--media_dir", MEDIA_DIR
         ]
 
         print(f"[INFO] Running command: {' '.join(cmd)}")
