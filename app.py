@@ -58,6 +58,9 @@ def render_manim():
             timeout=300,
             cwd=MEDIA_DIR
         )
+        print("[DEBUG] Directory tree under /tmp/media/videos:")
+        os.system("find /tmp/media/videos -type f -name '*.mp4'")
+
 
         os.remove(code_path)
 
@@ -75,6 +78,9 @@ def render_manim():
 
         print("[DEBUG] Locating rendered .mp4...")
         candidate_paths = glob.glob(f"/tmp/media/videos/{scene_id}/**/*.mp4", recursive=True)
+        if not candidate_paths:
+            candidate_paths = glob.glob(f"/tmp/media/videos/**/*.mp4", recursive=True)
+        print(f"[DEBUG] Candidate paths found: {candidate_paths}")
         if candidate_paths:
             output_path = candidate_paths[0]
             print(f"[SUCCESS] Video file found at: {output_path}")
