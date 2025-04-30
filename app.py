@@ -45,7 +45,7 @@ def render_manim():
             sys.executable, "-m", "manim",
             code_path,
             scene_name,
-            "-qm",
+            "-ql",
             "-o", output_name,
         ]
 
