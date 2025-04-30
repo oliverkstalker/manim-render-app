@@ -57,6 +57,17 @@ def render_manim():
             timeout=300,
             cwd=MEDIA_DIR
         )
+        print(f"[DEBUG] Manim return code = {result.returncode}")
+        if result.returncode != 0:
+            print("[DEBUG] manim failed – full stderr follows")
+            print(result.stderr)
+            return jsonify({
+                "error": "Manim rendering failed",
+                "returncode": result.returncode,
+                "stderr": result.stderr,
+                "stdout": result.stdout
+            }), 500
+
         try:
             os.remove(code_path)
         except Exception as e:
