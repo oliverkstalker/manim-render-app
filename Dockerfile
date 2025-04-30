@@ -12,6 +12,8 @@ RUN apt-get update && \
     texlive-latex-extra \
     texlive-fonts-recommended \
     texlive-fonts-extra \
+    dvisvgm \
+    cm-super \
     dvipng \
     ghostscript \
     ffmpeg \
