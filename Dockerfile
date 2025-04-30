@@ -27,4 +27,5 @@ RUN pip install -r requirements.txt
 COPY . /app
 WORKDIR /app
 
-CMD ["gunicorn", "-b", "0.0.0.0:$PORT", "app:app"]
+CMD gunicorn -b 0.0.0.0:${PORT:-5000} app:app
+
