@@ -29,5 +29,5 @@ RUN pip install -r requirements.txt
 COPY . /app
 WORKDIR /app
 
-CMD gunicorn -b 0.0.0.0:${PORT:-5000} app:app
+CMD gunicorn -b 0.0.0.0:${PORT:-5000} --timeout 300 app:app
 
