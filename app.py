@@ -58,8 +58,14 @@ def render_manim():
             timeout=300,
             cwd=MEDIA_DIR
         )
+        try:
+            os.remove(code_path)
+        except Exception as e:
+            print(f"[WARN] Could not remove code file: {e}")
+        
+        print("[DEBUG] All .mp4 files under /tmp:")
+        os.system("find /tmp -type f -name '*.mp4'")
 
-        os.remove(code_path)
 
         print("==== [STDOUT] ====")
         print(result.stdout)
@@ -72,9 +78,6 @@ def render_manim():
                 "details": result.stderr.strip(),
                 "stdout": result.stdout.strip()
             }), 500
-
-        print("[DEBUG] All .mp4 files under /tmp:")
-        os.system("find /tmp -type f -name '*.mp4'")
 
         print("[DEBUG] Locating rendered .mp4...")
         candidate_paths = glob.glob(f"/tmp/scene_{scene_id}.mp4")
