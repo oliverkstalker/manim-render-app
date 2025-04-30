@@ -74,7 +74,7 @@ def render_manim():
             }), 500
 
         print("[DEBUG] Locating rendered .mp4...")
-        candidate_paths = glob.glob(f"/tmp/videos/scene_{scene_id}/**/scene_{scene_id}.mp4", recursive=True)
+        candidate_paths = glob.glob(f"/tmp/videos/{scene_id}/**/*.mp4", recursive=True)
         if candidate_paths:
             output_path = candidate_paths[0]
             print(f"[SUCCESS] Video file found at: {output_path}")
