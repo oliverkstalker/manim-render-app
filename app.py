@@ -90,9 +90,23 @@ def render_manim():
             }), 500
 
         print("[DEBUG] Locating rendered .mp4...")
-        candidate_paths = glob.glob(f"/tmp/scene_{scene_id}.mp4")
+        # 1. primary expected path pattern
+        candidate_paths = glob.glob(
+            f"/tmp/media/videos/scene_{scene_id}/**/scene_{scene_id}.mp4",
+            recursive=True
+        )
+
+        # 2. fall back to flat layout (if you ever switch back to -o only)
+        if not candidate_paths:
+            flat_path = f"/tmp/scene_{scene_id}.mp4"
+            if os.path.exists(flat_path):
+                candidate_paths = [flat_path]
+
+        # 3. last-ditch global search (rarely needed)
         if not candidate_paths:
             candidate_paths = glob.glob("/tmp/**/*.mp4", recursive=True)
+
+
 
         print(f"[DEBUG] Candidate paths found: {candidate_paths}")
         if candidate_paths:
